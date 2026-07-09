@@ -50,3 +50,46 @@ export async function assertBoardAccess(
 
   return { access: { board, membership } };
 }
+
+export async function assertListAccess(
+  userId: string,
+  listId: string,
+  minRole: BoardRole = "VIEWER",
+) {
+  const list = await prisma.list.findUnique({
+    where: { id: listId },
+  });
+
+  if (!list) {
+    return { error: jsonError("List not found", 404) };
+  }
+
+  const accessResult = await assertBoardAccess(userId, list.boardId, minRole);
+  if ("error" in accessResult) return accessResult;
+
+  return { list, access: accessResult.access };
+}
+
+export async function assertCardAccess(
+  userId: string,
+  cardId: string,
+  minRole: BoardRole = "VIEWER",
+) {
+  const card = await prisma.card.findUnique({
+    where: { id: cardId },
+    include: { list: true },
+  });
+
+  if (!card) {
+    return { error: jsonError("Card not found", 404) };
+  }
+
+  const accessResult = await assertBoardAccess(
+    userId,
+    card.list.boardId,
+    minRole,
+  );
+  if ("error" in accessResult) return accessResult;
+
+  return { card, access: accessResult.access };
+}
