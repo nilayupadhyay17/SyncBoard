@@ -7,7 +7,8 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─── NextAuth (Auth.js) ─────────────────────────────────────────────────────
+// ─── NextAuth (Auth.js) ───────────────────────────────────────────────────────
+// Required by @auth/prisma-adapter.
 
 model User {
   id            String    @id @default(cuid())
@@ -62,7 +63,8 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
-// ─── SyncBoard domain ───────────────────────────────────────────────────────
+// ─── MVP domain ───────────────────────────────────────────────────────────────
+// Phase 2+: invites, labels, comments, activity feed, priorities, archive
 
 enum WorkspaceRole {
   OWNER
@@ -93,7 +95,7 @@ model WorkspaceMember {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
+  joinedAt DateTime @default(now())
 
   @@unique([workspaceId, userId])
 }
@@ -115,7 +117,7 @@ model Board {
 model Column {
   id       String @id @default(cuid())
   title    String
-  position Int
+  position Float
   boardId  String
 
   board Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
@@ -124,14 +126,14 @@ model Column {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([boardId, position])
+  @@index([boardId, position])
 }
 
 model Card {
   id          String    @id @default(cuid())
   title       String
-  description String?
-  position    Int
+  description String?   @db.Text
+  position    Float
   columnId    String
   boardId     String
   assigneeId  String?
@@ -144,6 +146,6 @@ model Card {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([columnId, position])
+  @@index([columnId, position])
   @@index([boardId])
 }
