@@ -1,34 +1,8 @@
-"use client";
+import { signOut } from "@/lib/auth";
+import { requireUser } from "@/lib/session";
 
-import { signOut, useSession } from "next-auth/react";
-import Link from "next/link";
-
-export default function BoardsPage() {
-  const { data: session, status } = useSession();
-
-  if (status === "loading") {
-    return (
-      <div className="flex flex-1 items-center justify-center bg-zinc-50 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-500">Loading session…</p>
-      </div>
-    );
-  }
-
-  if (!session?.user) {
-    return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-4 bg-zinc-50 px-6 dark:bg-zinc-950">
-        <p className="text-sm text-zinc-600 dark:text-zinc-400">
-          You need to sign in to view boards.
-        </p>
-        <Link
-          href="/login"
-          className="rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500"
-        >
-          Sign in
-        </Link>
-      </div>
-    );
-  }
+export default async function BoardsPage() {
+  const user = await requireUser();
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center bg-zinc-50 px-6 py-24 font-sans dark:bg-zinc-950">
@@ -42,22 +16,27 @@ export default function BoardsPage() {
         <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
           Signed in as{" "}
           <span className="font-medium text-zinc-900 dark:text-zinc-100">
-            {session.user.email}
+            {user.email}
           </span>
         </p>
-        <p className="mt-1 text-xs text-zinc-500">
-          User ID: {session.user.id}
-        </p>
+        <p className="mt-1 text-xs text-zinc-500">User ID: {user.id}</p>
         <p className="mt-6 text-sm text-zinc-500">
-          Board list comes in Phase 2. Auth session is working.
+          Board list comes in Phase 2. Auth protection is working.
         </p>
-        <button
-          type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="mt-8 rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+        <form
+          action={async () => {
+            "use server";
+            await signOut({ redirectTo: "/login" });
+          }}
+          className="mt-8"
         >
-          Sign out
-        </button>
+          <button
+            type="submit"
+            className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50 dark:border-zinc-700 dark:text-zinc-200 dark:hover:bg-zinc-800"
+          >
+            Sign out
+          </button>
+        </form>
       </main>
     </div>
   );

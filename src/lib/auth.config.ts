@@ -2,7 +2,7 @@ import type { NextAuthConfig } from "next-auth";
 
 /**
  * Edge-safe Auth.js config (no Prisma / bcrypt).
- * Full providers live in auth.ts — ready for middleware in Slice 5.
+ * Full providers live in auth.ts.
  */
 export const authConfig = {
   pages: {
@@ -13,9 +13,6 @@ export const authConfig = {
   },
   providers: [],
   callbacks: {
-    authorized({ auth }) {
-      return !!auth?.user;
-    },
     jwt({ token, user }) {
       if (user) {
         token.id = user.id;
